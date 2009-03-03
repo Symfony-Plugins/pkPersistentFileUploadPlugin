@@ -30,7 +30,23 @@ class pkValidatorFilePersistent extends sfValidatorFile
    * 
    * The persistid key allows lookup of a previously uploaded file
    * when no new file has been submitted. 
+   
+   * A RARE BUT USEFUL CASE: if you need to prefill this cache before
+   * invoking the form for the first time, you can instantiate this 
+   * validator yourself:
    * 
+   * $vfp = new pkValidatorFilePersistent();
+   * $guid = $fvp->createGuid();
+   * $vfp->clean(
+   *   array(
+   *     'newfile' => 
+   *       array('tmp_name' => $myexistingfile), 
+   *     'persistid' => $guid));
+   *
+   * Then set array('persistid' => $guid) as the default value
+   * for the file widget. This logic is most easily encapsulated in
+   * the configure() method of your form class.
+   *
    * @see sfValidatorFile
    * @see sfValidatorBase
    */
@@ -98,20 +114,7 @@ class pkValidatorFilePersistent extends sfValidatorFile
     }
     if ($newFile)
     {
-      // While we're here, age off any stale uploads in the cache
-      // (TODO: for performance, do this one time in a hundred or similar,
-      // it's simple to do that probablistically).
-      $persistentDir = $this->getPersistentDir();
-      $files = glob("$persistentDir/*");
-      $now = time();
-      foreach ($files as $file)
-      {
-        if ($now - filemtime($file) > 
-          sfConfig::get('sf_persistent_upload_lifetime', 60) * 60)
-        {
-          unlink($file); 
-        }
-      }
+      self::removeOldFiles($this->getPersistentDir());
       if ($persistid !== false)
       {
         $filePath = "$persistentDir/$persistid.file";
@@ -138,7 +141,7 @@ class pkValidatorFilePersistent extends sfValidatorFile
     return $persistentDir;
   }
 
-  static private function createGuid()
+  static public function createGuid()
   {
     $guid = "";
     for ($i = 0; ($i < 8); $i++) {
@@ -147,6 +150,39 @@ class pkValidatorFilePersistent extends sfValidatorFile
     return $guid;
   }
 
+  static public function removeOldFiles($dir)
+  {
+    // Age off any stale uploads in the cache
+    // (TODO: for performance, do this one time in a hundred or similar,
+    // it's simple to do that probabilistically).
+    $files = glob("$dir/*");
+    $now = time();
+    foreach ($files as $file)
+    {
+      if ($now - filemtime($file) > 
+        sfConfig::get('sf_persistent_upload_lifetime', 60) * 60)
+      {
+        unlink($file); 
+      }
+    }
+  }
+
+  static public function getPreviewDir()
+  {
+    return sfConfig::get('sf_web_dir') . "/uploaded-image-preview";
+
+  }
+
+  static public function previewAvailable($value)
+  {
+    if (isset($value['persistid']))
+    {
+      $persistid = $value['persistid'];
+      $info = self::getFileInfo($persistid);
+      return !!$info['tmp_name'];
+    }
+    return false;
+  }
   static public function getFileInfo($persistid)
   {
     if (!self::validPersistId($persistid))

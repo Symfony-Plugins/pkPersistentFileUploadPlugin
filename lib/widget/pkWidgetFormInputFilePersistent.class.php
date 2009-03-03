@@ -28,6 +28,7 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
 
     $this->addOption('type', 'file');
     $this->addOption('existing-html', false);
+    $this->addOption('image-preview', null);
     $this->setOption('needs_multipart', true);
   }
 
@@ -59,12 +60,45 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
     }
     else
     {
-      $persistid = $this->createGuid();
+      // One implementation, not two (to inevitably drift apart)
+      $persistid = pkValidatorFilePersistent::createGuid();
     }
     $result = '';
     if ($exists)
     {
-      $result = $this->getOption('existing-html');
+      if ($this->hasOption('image-preview'))
+      {
+        // While we're here age off stale previews
+        $dir = sfConfig::get('sf_web_dir') . "/uploaded-image-preview";
+        pkValidatorFilePersistent::removeOldFiles($dir);
+        $output = "$dir/$persistid.jpg";
+        if (!file_exists($output))
+        {
+          $imagePreview = $this->getOption('image-preview');
+          if ($imagePreview['resizeType'] === 'c')
+          {
+            $method = 'cropOriginal';
+          }
+          else
+          {
+            $method = 'scaleToFit';
+          }
+          if (!is_dir($dir))
+          {
+            // You may have to precreate this folder and give
+            // it permissions that allow your web server full access
+            mkdir($dir);
+          }
+          $path = "$dir/$persistid.jpg";
+          pkImageConverter::$method(
+            $info['tmp_name'], 
+            $path,
+            $imagePreview['width'],
+            $imagePreview['height']);
+        }
+        $result .= "<img src='/uploaded-image-preview/$persistid.jpg' />"; 
+      }
+      $result .= $this->getOption('existing-html');
     }
     return $result .
       $this->renderTag('input',
@@ -80,12 +114,4 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
           'value' => $persistid));
   }
 
-  static private function createGuid()
-  {
-    $guid = "";
-    for ($i = 0; ($i < 8); $i++) {
-      $guid .= sprintf("%02x", mt_rand(0, 255));
-    }
-    return $guid;
-  }
 }
