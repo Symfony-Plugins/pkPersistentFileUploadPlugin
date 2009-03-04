@@ -69,12 +69,23 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
       if ($this->hasOption('image-preview'))
       {
         // While we're here age off stale previews
-        $dir = sfConfig::get('sf_web_dir') . "/uploaded-image-preview";
+        $subdir = sfConfig::get('sf_persistent_upload_preview_dir', "/uploaded-image-preview");
+        $parentdir = sfConfig::get('sf_web_dir');
+        $dir = "$parentdir$subdir";
         pkValidatorFilePersistent::removeOldFiles($dir);
-        $output = "$dir/$persistid.jpg";
+        $imagePreview = $this->getOption('image-preview');
+        $width = $imagePreview['width'] + 0;
+        $height = $imagePreview['height'] + 0;
+        $resizeType = $imagePreview['resizeType'];
+        if (!in_array($resizeType, array('c', 's')))
+        {
+          $resizeType = 'c';
+        }
+        $imagename = "$persistid.$width.$height.$resizeType.jpg";
+        $url = "$subdir/$imagename";
+        $output = "$dir/$imagename";
         if (!file_exists($output))
         {
-          $imagePreview = $this->getOption('image-preview');
           if ($imagePreview['resizeType'] === 'c')
           {
             $method = 'cropOriginal';
@@ -89,14 +100,13 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
             // it permissions that allow your web server full access
             mkdir($dir);
           }
-          $path = "$dir/$persistid.jpg";
           pkImageConverter::$method(
             $info['tmp_name'], 
-            $path,
+            $output,
             $imagePreview['width'],
             $imagePreview['height']);
         }
-        $result .= "<img src='/uploaded-image-preview/$persistid.jpg' />"; 
+        $result .= "<img src='$url' />"; 
       }
       $result .= $this->getOption('existing-html');
     }
