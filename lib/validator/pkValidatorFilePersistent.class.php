@@ -62,7 +62,17 @@ class pkValidatorFilePersistent extends sfValidatorFile
       $persistid = false;
     }
     $cvalue = false;
-    if ($this->isEmpty($value['newfile']))
+    // Why do we tolerate the newfile fork being entirely absent?
+    // Because with persistent file upload widgets, it's safe to
+    // redirect a form submission to another action via the GET method
+    // after validation... which is extremely useful if you want to
+    // split something into an iframed initial upload action and
+    // a non-iframed annotation action and you need to be able to
+    // stuff the state of the form into a URL and do window.parent.location =.
+    // As long as we tolerate the absence of the newfile button, we can
+    // rebuild the submission from what's in 
+    // getRequest()->getParameterHolder()->getAll(), and that is useful.
+    if ((!isset($value['newfile']) || ($this->isEmpty($value['newfile']))))
     {
       if ($persistid !== false)
       {
