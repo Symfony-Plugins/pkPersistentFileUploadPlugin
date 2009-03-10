@@ -223,13 +223,6 @@ animated GIF again.
 By Thomas Boutell of [P&#39;unk Avenue](http://www.punkave.com/).
 You can reach Tom at [tom@punkave.com](mailto:punkave.com).
 
-## TODO
-
-Finish support for individual iframes, allowing progress display and
-simultaneous uploads and eliminating the need for the main display
-to be an iframe in order to achieve progress display. It's a good idea but it
-doesn't work yet.
-
 ## Changelog
 
 Version 0.1.2: documentation fixes.

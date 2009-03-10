@@ -212,18 +212,6 @@ class pkValidatorFilePersistent extends sfValidatorFile
     }
   }
 
-  static public function setFileInfo($persistid, $data)
-  {
-    if (!self::validPersistId($persistid))
-    {
-      // Roll our eyes at the hackers
-      return false;
-    }
-    $persistentDir = self::getPersistentDir();
-    $infoPath = "$persistentDir/$persistid.data";
-    file_put_contents($infoPath, serialize($data));
-    return true;
-  }
   static public function validPersistId($persistid)
   {
     return preg_match("/^[a-fA-F0-9]+$/", $persistid);

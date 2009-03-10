@@ -27,12 +27,8 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
     parent::configure($options, $attributes);
 
     $this->addOption('type', 'file');
-    $this->addOption('iframe', null);
-    $this->addOption('progress', null);
-    $this->addOption('iframe-content', null);
     $this->addOption('existing-html', false);
     $this->addOption('image-preview', null);
-    $this->addOption('persistid', null);
     $this->setOption('needs_multipart', true);
   }
 
@@ -53,18 +49,11 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
   public function render($name, $value = null, $attributes = array(), $errors = array())
   {
     $exists = false;
-    if ($this->hasOption('persistid'))
-    {
-      $persistid = $this->getOption('persistid');
-    }
-    elseif (isset($value['persistid']) && strlen($value['persistid']))
+    if (isset($value['persistid']) && strlen($value['persistid']))
     {
       $persistid = $value['persistid'];
-    }
-    if (isset($persistid))
-    {
       $info = pkValidatorFilePersistent::getFileInfo($persistid);
-      if (isset($info['tmp_name']))
+      if ($info)
       {
         $exists = true;
       }
@@ -117,85 +106,22 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
             $imagePreview['width'],
             $imagePreview['height']);
         }
-        if ($this->getOption('iframe-content'))
-        {
-          // This is not security related, it just forces a refresh
-          $salt = time();
-          $salted = "$url?$salt";
-          $result .= "<script>pkPersistentFileUploadUpdatePreview(json_encode($persistid), json_encode($salted));</script>";
-        }
-        else
-        {
-          $result .= "<img id='pk-persistent-upload-preview-$persistid' src='" . json_encode($url) . " />"; 
-        }
+        $result .= "<img src='$url' />"; 
       }
       $result .= $this->getOption('existing-html');
     }
-    else
-    {
-      if ($this->hasOption('image-preview') && $this->hasOption('iframe'))
-      {
-        $result .= "<img id='pk-persistent-upload-preview-$persistid' style='display: none' />"; 
-      }
-    }
-    if ($this->getOption('iframe'))
-    {
-      $iframe = $this->getOption('iframe');
-      if (isset($iframe['width']))
-      {
-        $width = $iframe['width'];
-      }
-      else
-      {
-        $width = 400;
-      }
-      if (isset($iframe['height']))
-      {
-        $height = $iframe['height'];
-      }
-      else
-      {
-        $height = 50;
-      }
-      $result .= "<iframe class='pk-persistent-upload-iframe' id='pk-persistent-upload-iframe-$persistid' width='$width' height='$height' src='" . url_for("pkPersistentFileUpload/iframe?persistid=$persistid") . "'></iframe>";
-      // We continue to build the result string as the fallback for a
-      // device that doesn't do iframes
-      $info = pkValidatorFilePersistent::getFileInfo($persistid);
-      if ($info === false)
-      {
-        // That's OK, it's just the first pass
-        $info = array();
-      }
-      // We need these so we can render it correctly from the
-      // action in the iframe
-      $info['options'] = $this->getOptions();
-      $info['attributes'] = $this->getAttributes();
-      pkValidatorFilePersistent::setFileInfo($persistid, $info);
-      if ($this->hasOption('progress'))
-      {
-        $result .= "<div class='pk-persistent-upload-progress' id='pk-persistent-upload-progress-$persistid'>";
-        {
-          $result .= $this->getOption('progress');
-        }
-        $result .= "</div>";
-      }
-    }
-    else
-    {
-      $result .=
-        $this->renderTag('input',
-          array_merge(
-            array(
-              'type' => $this->getOption('type'),
-              'name' => $name . '[newfile]'),
-            $attributes));
-      $result .= 
-        $this->renderTag('input',
+    return $result .
+      $this->renderTag('input',
+        array_merge(
           array(
-            'type' => 'hidden',
-            'name' => $name . '[persistid]',
-            'value' => $persistid));
-    }
-    return $result;
+            'type' => $this->getOption('type'),
+            'name' => $name . '[newfile]'),
+          $attributes)) .
+      $this->renderTag('input',
+        array(
+          'type' => 'hidden',
+          'name' => $name . '[persistid]',
+          'value' => $persistid));
   }
+
 }
