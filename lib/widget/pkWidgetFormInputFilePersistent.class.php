@@ -74,8 +74,16 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
         $dir = "$parentdir$subdir";
         pkValidatorFilePersistent::removeOldFiles($dir);
         $imagePreview = $this->getOption('image-preview');
-        $width = $imagePreview['width'] + 0;
-        $height = $imagePreview['height'] + 0;
+        $width = $imagePreview['width'];
+        $height = $imagePreview['height'];
+        if ($height === false)
+        {
+          list($iwidth, $iheight) = getimagesize($info['tmp_name']);
+          if ($iheight && $iwidth)
+          {
+            $height = $width * ($iheight / $iwidth);
+          }
+        }
         $resizeType = $imagePreview['resizeType'];
         if (!in_array($resizeType, array('c', 's')))
         {
@@ -103,8 +111,8 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
           pkImageConverter::$method(
             $info['tmp_name'], 
             $output,
-            $imagePreview['width'],
-            $imagePreview['height']);
+            $width,
+            $height);
         }
         $result .= "<img src='$url' />"; 
       }
