@@ -81,7 +81,9 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
           list($iwidth, $iheight) = getimagesize($info['tmp_name']);
           if ($iheight && $iwidth)
           {
-            $height = $width * ($iheight / $iwidth);
+            // Lack of rounding produced filenames with extra decimal points
+            // which broke the previewer
+            $height = floor($width * ($iheight / $iwidth));
           }
         }
         $resizeType = $imagePreview['resizeType'];
