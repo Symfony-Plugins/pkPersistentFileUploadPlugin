@@ -36,6 +36,23 @@ the need for the user to browse for it again.
 Symfony 1.2. That's it. You do not need to use any particular ORM
 because the persistent cache of file uploads is implemented via the filesystem.
 
+## Installation
+
+    Newly uploaded files are copied to a subfolder of your project's
+    `data` folder called `pk-writable`, which is created for you
+    if it does not already exist. Note that if the permissions of your
+    `data` folder do not permit this, you'll need to manually create the
+    `data/pk-writable` folder and make sure it is readable, writable and 
+    executable by the web server. Creating this one folder will take care
+    of the non-database data storage needs of all P'unk Avenue plugins.
+
+    Note that 777 permissions are only appropriate when your web server
+    runs as a user who otherwise can't touch any files (but this is
+    standard practice with many hosting setups):
+
+    mkdir data/pk-writable
+    chmod 777 data/pk-writable
+
 ## Usage
 
 Here's a simple example:
@@ -85,19 +102,12 @@ In order to make file uploads persistent, it was necessary to add
 a facility to temporarily store those file uploads to the 
 `pkValidatorFilePersistent` class.
 
-Newly uploaded files are copied to a subfolder of your project's
-`data` folder called `persistent-uploads`, which is created for you
-if it does not already exist. Note that if the permissions of your
-`data` folder do not permit this, you'll need to manually create the
-subfolder and make sure it is readable, writable and executable
-by the web server.
-
 For security reasons, uploaded files are stored in temporary files with
 randomly-generated names. We *never* blindly trust the filename uploaded
 by the user (and you'd better not do that either). 
 
 Every time a new file is uploaded, the code also checks the existing
-files in the `persistent-uploads` folder. Any files older than one
+persistent upload files in the `pk-tmp` folder. Any files older than one
 hour are removed at this point. If this folder grows too quickly for
 comfort, you can adjust the time limit by setting 
 `sf_persistent_upload_lifetime` via `settings.yml`. Note that the time 
