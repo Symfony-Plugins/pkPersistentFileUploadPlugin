@@ -36,7 +36,7 @@ class pkValidatorFilePersistent extends sfValidatorFile
    * validator yourself:
    * 
    * $vfp = new pkValidatorFilePersistent();
-   * $guid = $fvp->createGuid();
+   * $guid = pkGuid::generate();
    * $vfp->clean(
    *   array(
    *     'newfile' => 
@@ -139,25 +139,7 @@ class pkValidatorFilePersistent extends sfValidatorFile
 
   static protected function getPersistentDir()
   {
-    $dataDir = sfConfig::get('sf_data_dir');
-    $persistentDir = "$dataDir/persistent-uploads";
-    if (!file_exists($persistentDir))
-    {
-      if (!mkdir($persistentDir))
-      {
-        throw new Exception("Unable to create $persistentDir check permissions of parent directory or create this directory manually and make sure it is writable by the web server");
-      }
-    }
-    return $persistentDir;
-  }
-
-  static public function createGuid()
-  {
-    $guid = "";
-    for ($i = 0; ($i < 8); $i++) {
-      $guid .= sprintf("%02x", mt_rand(0, 255));
-    }
-    return $guid;
+    return pkFiles::getWritableDataFolder(array("persistent_uploads"));
   }
 
   static public function removeOldFiles($dir)

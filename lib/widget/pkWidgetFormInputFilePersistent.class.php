@@ -61,17 +61,19 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
     else
     {
       // One implementation, not two (to inevitably drift apart)
-      $persistid = pkValidatorFilePersistent::createGuid();
+      $persistid = pkGuid::generate();
     }
     $result = '';
     if ($exists)
     {
       if ($this->hasOption('image-preview'))
       {
+        // This is really the URL, not the directory path...
+        $urlStem = sfConfig::get('sf_persistent_upload_preview_dir', '/uploads/uploaded-image-preview');
+        // This is the corresponding directory path. You have to override one
+        // if you override the other
+        $dir = pkFiles::getUploadFolder("uploaded-image-preview");
         // While we're here age off stale previews
-        $subdir = sfConfig::get('sf_persistent_upload_preview_dir', "/uploaded-image-preview");
-        $parentdir = sfConfig::get('sf_web_dir');
-        $dir = "$parentdir$subdir";
         pkValidatorFilePersistent::removeOldFiles($dir);
         $imagePreview = $this->getOption('image-preview');
         $width = $imagePreview['width'];
@@ -92,7 +94,7 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
           $resizeType = 'c';
         }
         $imagename = "$persistid.$width.$height.$resizeType.jpg";
-        $url = "$subdir/$imagename";
+        $url = "$urlStem/$imagename";
         $output = "$dir/$imagename";
         if (!file_exists($output))
         {
@@ -103,12 +105,6 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
           else
           {
             $method = 'scaleToFit';
-          }
-          if (!is_dir($dir))
-          {
-            // You may have to precreate this folder and give
-            // it permissions that allow your web server full access
-            mkdir($dir);
           }
           pkImageConverter::$method(
             $info['tmp_name'], 
