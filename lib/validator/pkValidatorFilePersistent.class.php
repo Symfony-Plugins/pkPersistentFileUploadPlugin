@@ -159,12 +159,6 @@ class pkValidatorFilePersistent extends sfValidatorFile
     }
   }
 
-  static public function getPreviewDir()
-  {
-    return sfConfig::get('sf_web_dir') . "/uploaded-image-preview";
-
-  }
-
   static public function previewAvailable($value)
   {
     if (isset($value['persistid']))

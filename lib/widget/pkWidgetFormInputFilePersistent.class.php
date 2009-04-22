@@ -68,11 +68,12 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
     {
       if ($this->hasOption('image-preview'))
       {
-        // This is really the URL, not the directory path...
-        $urlStem = sfConfig::get('sf_persistent_upload_preview_dir', '/uploads/uploaded-image-preview');
+        // Note change of key
+        $urlStem = sfConfig::get('app_pkPersistentFileUpload_preview_url', '/uploads/uploaded_image_preview');
         // This is the corresponding directory path. You have to override one
-        // if you override the other
-        $dir = pkFiles::getUploadFolder("uploaded-image-preview");
+        // if you override the other. You override this one by setting
+        // app_pkToolkit_upload_uploaded_image_preview_dir
+        $dir = pkFiles::getUploadFolder("uploaded_image_preview");
         // While we're here age off stale previews
         pkValidatorFilePersistent::removeOldFiles($dir);
         $imagePreview = $this->getOption('image-preview');
