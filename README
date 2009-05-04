@@ -33,7 +33,10 @@ the need for the user to browse for it again.
 
 ## Requirements
 
-Symfony 1.2. That's it. You do not need to use any particular ORM
+* Symfony 1.2
+* pkToolkitPlugin
+
+That's it. You do not need to use any particular ORM
 because the persistent cache of file uploads is implemented via the filesystem.
 
 ## Installation
