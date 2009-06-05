@@ -66,7 +66,9 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
     $result = '';
     if ($exists)
     {
-      if ($this->hasOption('image-preview'))
+      // hasOption just verifies that the option is valid, it doesn't check what,
+      // if anything, was passed. Thanks to Lucjan Wilczewski 
+      if ($this->hasOption('image-preview') && $this->getOption('image-preview'))
       {
         // Note change of key
         $urlStem = sfConfig::get('app_pkPersistentFileUpload_preview_url', '/uploads/uploaded_image_preview');

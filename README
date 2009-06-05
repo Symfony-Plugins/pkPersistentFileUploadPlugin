@@ -36,25 +36,37 @@ the need for the user to browse for it again.
 * Symfony 1.2
 * pkToolkitPlugin
 
+And, optionally:
+
+* pkImageConverterPlugin
+
+If you wish to enable the image-preview option while adding the widget, which displays a thumbnail 
+of  successfully uploaded image files while the user completes additional validation passes
+over the form.
+
 That's it. You do not need to use any particular ORM
 because the persistent cache of file uploads is implemented via the filesystem.
 
 ## Installation
 
-    Newly uploaded files are copied to a subfolder of your project's
-    `data` folder called `pk-writable`, which is created for you
-    if it does not already exist. Note that if the permissions of your
-    `data` folder do not permit this, you'll need to manually create the
-    `data/pk-writable` folder and make sure it is readable, writable and 
-    executable by the web server. Creating this one folder will take care
-    of the non-database data storage needs of all P'unk Avenue plugins.
+Newly uploaded files are copied to a subfolder of your project's
+`data` folder called `pk-writable`, which is created for you
+if it does not already exist. Note that if the permissions of your
+`data` folder do not permit this, you'll need to manually create the
+`data/pk-writable` folder and make sure it is readable, writable and 
+executable by the web server. Creating this one folder will take care
+of the non-database data storage needs of all P'unk Avenue plugins.
 
-    Note that 777 permissions are only appropriate when your web server
-    runs as a user who otherwise can't touch any files (but this is
-    standard practice with many hosting setups):
+Note that 777 permissions are only appropriate when your web server
+runs as a user who otherwise can't touch any files (but this is
+standard practice with many hosting setups):
 
     mkdir data/pk-writable
     chmod 777 data/pk-writable
+
+If you are using the image-preview feature, a `web/uploads/uploaded_image_preview`
+will be automatically created to hold the previews, which are automatically aged off
+as needed, just as the persistent upload folder's contents are.
 
 ## Usage
 
@@ -63,10 +75,14 @@ Here's a simple example:
     // In the configure() method of your form
     $this->setWidget('file', new pkWidgetFormInputFilePersistent());
     $this->setValidator('file', new pkValidatorFilePersistent(
-      array("mime_types" => array("image/jpeg"))));
+      array("mime_types" => array("image/jpeg"),
+        "image-preview" => true)));
 
 You can pass all of the usual options to both the widget and
 the validator. This particular example accepts only JPEG images.
+
+Note that you should not enable the `image-preview` option unless you are expecting
+only image files.
 
 ## Telling the User What's Going On
 
