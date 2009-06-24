@@ -81,9 +81,9 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
         $imagePreview = $this->getOption('image-preview');
         $width = $imagePreview['width'];
         $height = $imagePreview['height'];
+        list($iwidth, $iheight) = getimagesize($info['tmp_name']);
         if ($height === false)
         {
-          list($iwidth, $iheight) = getimagesize($info['tmp_name']);
           if ($iheight && $iwidth)
           {
             // Lack of rounding produced filenames with extra decimal points
@@ -91,15 +91,22 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
             $height = floor($width * ($iheight / $iwidth));
           }
         }
+        // Never render bigger than actual size
+        if (($width > $iwidth) || ($height > $iheight))
+        {
+          $width = $iwidth;
+          $height = $iheight;
+        }
         $resizeType = $imagePreview['resizeType'];
         if (!in_array($resizeType, array('c', 's')))
         {
           $resizeType = 'c';
         }
-        $imagename = "$persistid.$width.$height.$resizeType.jpg";
+        // A simple filename reveals less
+        $imagename = "$persistid.jpg";
         $url = "$urlStem/$imagename";
         $output = "$dir/$imagename";
-        if (!file_exists($output))
+        if ((isset($info['newfile']) && $info['newfile']) || (!file_exists($output)))
         {
           if ($imagePreview['resizeType'] === 'c')
           {

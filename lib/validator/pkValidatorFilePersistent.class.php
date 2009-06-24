@@ -30,7 +30,7 @@ class pkValidatorFilePersistent extends sfValidatorFile
    * 
    * The persistid key allows lookup of a previously uploaded file
    * when no new file has been submitted. 
-   
+   *
    * A RARE BUT USEFUL CASE: if you need to prefill this cache before
    * invoking the form for the first time, you can instantiate this 
    * validator yourself:
@@ -124,14 +124,24 @@ class pkValidatorFilePersistent extends sfValidatorFile
     }
     if ($newFile)
     {
-      self::removeOldFiles($this->getPersistentDir());
+      // Expiration of abandoned stuff has to happen somewhere
+      self::removeOldFiles($persistentDir);
       if ($persistid !== false)
       {
         $filePath = "$persistentDir/$persistid.file";
         copy($cvalue['tmp_name'], $filePath);
         $data = $cvalue;
+        $data['newfile'] = true;
         $data['tmp_name'] = $filePath;
-        file_put_contents("$persistentDir/$persistid.data", serialize($data));
+        self::putFileInfo($persistid, $data);
+      }
+    } elseif ($persistid !== false)
+    {
+      $data = self::getFileInfo($persistid);
+      if ($data !== false)
+      {
+        $data['newfile'] = false;
+        self::putFileInfo($persistid, $data);
       }
     }
     return $result;
@@ -169,6 +179,7 @@ class pkValidatorFilePersistent extends sfValidatorFile
     }
     return false;
   }
+  
   static public function getFileInfo($persistid)
   {
     if (!self::validPersistId($persistid))
@@ -188,6 +199,12 @@ class pkValidatorFilePersistent extends sfValidatorFile
     }
   }
 
+  static public function putFileInfo($persistid, $data)
+  {
+    $persistentDir = self::getPersistentDir();
+    file_put_contents("$persistentDir/$persistid.data", serialize($data));
+  }
+  
   static public function validPersistId($persistid)
   {
     return preg_match("/^[a-fA-F0-9]+$/", $persistid);
