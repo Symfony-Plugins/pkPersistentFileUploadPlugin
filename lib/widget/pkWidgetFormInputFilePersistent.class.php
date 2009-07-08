@@ -79,29 +79,8 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
         // While we're here age off stale previews
         pkValidatorFilePersistent::removeOldFiles($dir);
         $imagePreview = $this->getOption('image-preview');
-        $width = $imagePreview['width'];
-        $height = $imagePreview['height'];
         list($iwidth, $iheight) = getimagesize($info['tmp_name']);
-        if ($height === false)
-        {
-          if ($iheight && $iwidth)
-          {
-            // Lack of rounding produced filenames with extra decimal points
-            // which broke the previewer
-            $height = floor($width * ($iheight / $iwidth));
-          }
-        }
-        // Never render bigger than actual size
-        if (($width > $iwidth) || ($height > $iheight))
-        {
-          $width = $iwidth;
-          $height = $iheight;
-        }
-        $resizeType = $imagePreview['resizeType'];
-        if (!in_array($resizeType, array('c', 's')))
-        {
-          $resizeType = 'c';
-        }
+        $dimensions = pkDimensions::constrain($iwidth, $iheight, 'jpg', $imagePreview);
         // A simple filename reveals less
         $imagename = "$persistid.jpg";
         $url = "$urlStem/$imagename";
@@ -119,8 +98,8 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
           pkImageConverter::$method(
             $info['tmp_name'], 
             $output,
-            $width,
-            $height);
+            $dimensions['width'],
+            $dimensions['height']);
         }
         $result .= "<img src='$url' />"; 
       }
