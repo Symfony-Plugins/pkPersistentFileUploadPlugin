@@ -95,13 +95,23 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
           {
             $method = 'scaleToFit';
           }
+          sfContext::getInstance()->getLogger()->info("YY calling converter method $method width " . $dimensions['width'] . ' height ' . $dimensions['height']);
           pkImageConverter::$method(
             $info['tmp_name'], 
             $output,
             $dimensions['width'],
             $dimensions['height']);
+          sfContext::getInstance()->getLogger()->info("YY after converter");
         }
-        $result .= "<img src='$url' />"; 
+        if (isset($imagePreview['markup']))
+        {
+          $markup = $imagePreview['markup'];
+        }
+        else
+        {
+          $markup = '<img src="%s" />';
+        }
+        $result .= sprintf($markup, $url);
       }
       $result .= $this->getOption('existing-html');
     }

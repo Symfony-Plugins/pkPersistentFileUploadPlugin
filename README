@@ -41,7 +41,7 @@ And, optionally:
 * pkImageConverterPlugin
 
 If you wish to enable the image-preview option while adding the widget, which displays a thumbnail 
-of  successfully uploaded image files while the user completes additional validation passes
+of successfully uploaded image files while the user completes additional validation passes
 over the form.
 
 That's it. You do not need to use any particular ORM
@@ -58,22 +58,26 @@ executable by the web server. Creating this one folder will take care
 of the non-database data storage needs of all P'unk Avenue plugins.
 
 Note that 777 permissions are only appropriate when your web server
-runs as a user who otherwise can't touch any files (but this is
-standard practice with many hosting setups):
+runs as a user who otherwise can't touch any files (standard in most Symfony hosting environments):
 
     mkdir data/pk-writable
     chmod 777 data/pk-writable
+
+pkToolkitPlugin will create and chmod this folder for you automatically if you run the
+standard `./symfony project:permissions` task.
 
 If you are using the image-preview feature, a `web/uploads/uploaded_image_preview`
 will be automatically created to hold the previews, which are automatically aged off
 as needed, just as the persistent upload folder's contents are.
 
+You can override the full filesystem path to this directory by setting `app_pkToolkit_upload_uploaded_image_preview_dir`. If you do so, you must also override the corresponding web path by setting `app_pkPersistentFileUpload_preview_url`. If you don't understand this, just use the defaults, which work great as-is.
+
 ## Usage
 
-Here's a simple example:
+Here's a simple example with image preview:
 
     // In the configure() method of your form
-    $this->setWidget('file', new pkWidgetFormInputFilePersistent());
+    $this->setWidget('file', new pkWidgetFormInputFilePersistent(array("image-preview" => array("width" => 600, "height" => 400, "resizeType" => "c"))));
     $this->setValidator('file', new pkValidatorFilePersistent(
       array("mime_types" => array("image/jpeg"),
         "image-preview" => true)));
@@ -83,6 +87,14 @@ the validator. This particular example accepts only JPEG images.
 
 Note that you should not enable the `image-preview` option unless you are expecting
 only image files.
+
+The `image-preview` option takes an array containing the following parameters:
+
+* `width`: the width in pixels of the preview image.
+* `height`: the height in pixels of the preview image. If `height` is `false`, the height will be scaled automatically to match the aspect ratio of the uploaded image. When this feature is used, the `resizeType` parameter has no effect.
+* `resizeType`: the cropping style. If `resizeType` is set to `s` or not specified, the image will be scaled up to fill the specified rectangle as much as possible without distortion or cropping. If `resizeType` is set to `c` the image will be scaled up to fill the specified rectangle completely without distortion, cropping as necessary to achieve that goal.
+* `forceScale`: by default an image is never scaled larger than actual size, no matter what options are passed. To override this behavior, specify `forceScale = true`. Note that this will certainly result in pixelated images.
+* `markup`: by default the preview image is rendered in a very simple `img` element. If you need something else, specify the `markup` option. The URL of the image will be substituted where `%s` appears in your markup string.
 
 ## Telling the User What's Going On
 
@@ -254,6 +266,7 @@ You can reach Tom at [tom@punkave.com](mailto:punkave.com).
 
 ## Changelog
 
+Version 0.1.3: important documentation fixes. Previously the `image-preview` option was incorrectly and inadequately documented. This option is specified when creating the widget, not the validator, and parameters should be passed describing the width and height and cropping style (see above). Also, the addition of the new markup option to the widget.
 Version 0.1.2: documentation fixes.
 Version 0.1.1: documentation fixes.
 Version 0.1.0: first version.
