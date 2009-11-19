@@ -54,7 +54,11 @@ class pkValidatorFilePersistent extends sfValidatorFile
   public function clean($value)
   {
     $user = sfContext::getInstance()->getUser();
-    $persistid = $value['persistid'];
+    $persistid = false;
+    if (isset($value['persistid']))
+    {
+      $persistid = $value['persistid'];      
+    }
     $newFile = false;
     $persistentDir = $this->getPersistentDir();
     if (!self::validPersistId($persistid))

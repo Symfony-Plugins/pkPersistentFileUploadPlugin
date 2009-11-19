@@ -19,6 +19,7 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
    *
    * @see sfWidgetFormInput
    *
+   *
    * In reality builds an array of two controls using the [] form field
    * name syntax
    */
@@ -29,6 +30,7 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
     $this->addOption('type', 'file');
     $this->addOption('existing-html', false);
     $this->addOption('image-preview', null);
+    $this->addOption('default-preview', null);
     $this->setOption('needs_multipart', true);
   }
 
@@ -64,11 +66,17 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
       $persistid = pkGuid::generate();
     }
     $result = '';
+    // hasOption just verifies that the option is valid, it doesn't check what,
+    // if anything, was passed. Thanks to Lucjan Wilczewski 
+    $preview = $this->hasOption('image-preview') ? $this->getOption('image-preview') : false;
+    $defaultPreview = $this->hasOption('default-preview') ? $this->getOption('default-preview') : false;
     if ($exists)
     {
-      // hasOption just verifies that the option is valid, it doesn't check what,
-      // if anything, was passed. Thanks to Lucjan Wilczewski 
-      if ($this->hasOption('image-preview') && $this->getOption('image-preview'))
+      $defaultPreview = false;
+    }
+    if ($exists || $defaultPreview)
+    {
+      if ($preview)
       {
         // Note change of key
         $urlStem = sfConfig::get('app_pkPersistentFileUpload_preview_url', '/uploads/uploaded_image_preview');
@@ -79,7 +87,15 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
         // While we're here age off stale previews
         pkValidatorFilePersistent::removeOldFiles($dir);
         $imagePreview = $this->getOption('image-preview');
-        list($iwidth, $iheight) = getimagesize($info['tmp_name']);
+        if ($exists)
+        {
+          $source = $info['tmp_name'];
+        }
+        else
+        {
+          $source = $defaultPreview;
+        }
+        list($iwidth, $iheight) = getimagesize($source);
         $dimensions = pkDimensions::constrain($iwidth, $iheight, 'jpg', $imagePreview);
         // A simple filename reveals less
         $imagename = "$persistid.jpg";
@@ -97,7 +113,7 @@ class pkWidgetFormInputFilePersistent extends sfWidgetForm
           }
           sfContext::getInstance()->getLogger()->info("YY calling converter method $method width " . $dimensions['width'] . ' height ' . $dimensions['height']);
           pkImageConverter::$method(
-            $info['tmp_name'], 
+            $source,
             $output,
             $dimensions['width'],
             $dimensions['height']);

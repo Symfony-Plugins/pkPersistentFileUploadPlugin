@@ -45,7 +45,7 @@ of successfully uploaded image files while the user completes additional validat
 over the form.
 
 That's it. You do not need to use any particular ORM
-because the persistent cache of file uploads is implemented via the filesystem.
+because the persistent cache of file uploads is implemented via the filesystem. 
 
 ## Installation
 
@@ -94,6 +94,8 @@ The `image-preview` option takes an array containing the following parameters:
 * `resizeType`: the cropping style. If `resizeType` is set to `s` or not specified, the image will be scaled up to fill the specified rectangle as much as possible without distortion or cropping. If `resizeType` is set to `c` the image will be scaled up to fill the specified rectangle completely without distortion, cropping as necessary to achieve that goal.
 * `forceScale`: by default an image is never scaled larger than actual size, no matter what options are passed. To override this behavior, specify `forceScale = true`. Note that this will certainly result in pixelated images.
 * `markup`: by default the preview image is rendered in a very simple `img` element. If you need something else, specify the `markup` option. The URL of the image will be substituted where `%s` appears in your markup string.
+
+You can also specify a filesystem path to an existing image file to be displayed as the default preview if the user hasn't yet uploaded a new one as part of a validation pass. In this way you can show the user the image that is already in the system unless and until they select another. To do that, set the `image-preview` option to the filesystem path of the image. It will be scaled by pkImageConverterPlugin, so it's fine to specify the path to a large original.
 
 ## Telling the User What's Going On
 
